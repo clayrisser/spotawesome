@@ -8,6 +8,7 @@ class CreateUserSerializer(Serializer):
 class UpdateUserSerializer(Serializer):
     id = fields.Field(required=True)
     email = fields.Email()
+    password = fields.Str()
 
 class GetUserSerializer(Serializer):
     id = fields.Field()

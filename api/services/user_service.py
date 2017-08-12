@@ -21,6 +21,10 @@ def update(id, data):
         user = User.select().where(User.email == data['email']).first()
         if user:
             raise UserWithEmailExists(data['email'])
+    if 'password' in data:
+        user.hash_password(data['password'])
+        user.save()
+        del data['password']
     user = User.update(**data).where(User.id == id)
     user.execute()
     user = User.select().where(User.id == id).first()
