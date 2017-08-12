@@ -7,6 +7,7 @@ itsdangerous==0.24
 Jinja2==2.9.6
 logging==0.4.9.6
 MarkupSafe==1.0
+marshmallow==2.13.5
 namedtupled==0.3.3
 passlib==1.7.1
 peewee==2.10.1
@@ -15,4 +16,5 @@ pydash==4.1.0
 python-dateutil==2.6.0
 pytz==2017.2
 PyYAML==3.12
+six==1.10.0
 Werkzeug==0.12.2
