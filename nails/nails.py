@@ -24,13 +24,17 @@ class Nails(Flask):
     def register_app(self, app):
         self.register_blueprint(app)
 
-def handle_exception(e):
+def handle_exception(app, e):
     status = 500
-    if hasattr(e, 'status') and e.status:
+    if hasattr(e, 'status') and (100 <= e.status and e.status < 600):
         status = e.status
     response = {
         'message': e.message
     }
+    if (status >= 500):
+        app.log.error(e)
+    else:
+        app.log.warn(e.message)
     if hasattr(e, 'payload') and e.payload:
         response['payload'] = e.payload
     return jsonify(response), status
@@ -70,5 +74,5 @@ def init_app(filepath, base):
             ), controller_name[1]), (base + '/' + route).replace('//', '/').replace('//', '/'))
     @blueprint.errorhandler(Exception)
     def exception(e):
-        return handle_exception(e)
+        return handle_exception(blueprint, e)
     return blueprint
