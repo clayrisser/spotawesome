@@ -8,6 +8,7 @@ import imp
 import os
 import re
 import sys
+import traceback
 
 class Nails(Flask):
     def __init__(self, import_name):
@@ -32,9 +33,13 @@ def handle_exception(app, e):
         'message': e.message
     }
     if (status >= 500):
-        app.log.error(e)
+        if get_config('debug'):
+            traceback.print_exc()
+        else:
+            app.log.error(e.message)
     else:
-        app.log.warn(e.message)
+        if get_config('debug'):
+            app.log.warn(e.message)
     if hasattr(e, 'payload') and e.payload:
         response['payload'] = e.payload
     return jsonify(response), status

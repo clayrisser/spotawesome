@@ -12,7 +12,7 @@ class BadRequest(Exception):
         if payload is not None:
             self.payload = payload
 
-    def dict(self):
+    def to_dict(self):
         response = {
             'message': self.message,
             'status': self.status
