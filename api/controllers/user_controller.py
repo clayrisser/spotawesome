@@ -10,25 +10,31 @@ from playhouse.shortcuts import model_to_dict
 class UserInstance(Controller):
     def post(self):
         data, err = CreateUserSerializer().load(request.json)
-        email = data['email']
-        password = data['password']
-        if User.select().where(User.email == email).exists():
-            raise Forbidden('User with email \'' + email + '\' already exists', {
-                'email': email
+        if User.select().where(User.email == data['email']).exists():
+            raise Forbidden('User with email \'' + data['email'] + '\' already exists', {
+                'email': data['email']
             })
-        user = User(email = email)
-        user.hash_password(password)
+        user = User(email = data['email'])
+        user.hash_password(data['password'])
         user.save()
+        user_dict = model_to_dict(user)
+        del user_dict['password']
+        return jsonify(user_dict)
+
+    def put(self):
+        data, err = UpdateUserSerializer().load(request.json)
+        user = User.update(**data).where(User.id == data['id'])
+        user.execute()
+        user = User.select().where(User.id == data['id']).first()
         user_dict = model_to_dict(user)
         del user_dict['password']
         return jsonify(user_dict)
 
     def get(self):
         data, err = GetUserSerializer().load(request.args.to_dict())
-        email = data['email']
-        user = User.select().where(User.email == email).first()
+        user = User.select().where(User.id == data['id']).first()
         if not user:
-            raise UserNotFound(email)
+            raise UserNotFound(data['email'])
         user_dict = model_to_dict(user)
         del user_dict['password']
         return jsonify(user_dict)
