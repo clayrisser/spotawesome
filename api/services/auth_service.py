@@ -7,7 +7,7 @@ from api.exceptions.auth_exceptions import TokenInvalid, TokenExpired
 from nails.exceptions import Unauthorized
 from playhouse.shortcuts import model_to_dict
 from nails import get_config
-from flask import request
+from flask import request, make_response
 
 def register(email, password):
     if User.select().where(User.email == email).exists():
@@ -48,7 +48,6 @@ def get_authed_user():
     return user
 
 def get_access_token(user_id):
-    print(get_config('api', 'jwt.secret'))
     return jwt.encode({
         'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=get_config('api', 'jwt.exp')),
         'user_id': user_id
@@ -64,3 +63,16 @@ def get_payload(access_token):
         raise TokenExpired()
     except DecodeError:
         raise TokenInvalid()
+
+def resp_with_access_token(data, access_token):
+    response = make_response(data)
+    domain = get_config('api', 'jwt.domain')
+    response.set_cookie(
+        key='access_token',
+        value=access_token,
+        secure=get_config('api', 'jwt.secure'),
+        httponly=True,
+        expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=get_config('api', 'jwt.exp')),
+        domain=(domain if domain else None)
+    )
+    return response
