@@ -18,7 +18,7 @@ ENV JWT_SECRET=hellodocker
 ENV JWT_EXP=604800
 ENV JWT_DOMAIN=""
 ENV JWT_SECURE=false
-ENV LOG_FILE=/var/log/spotawesome.log
+ENV LOG_FILE=/var/log/nails.log
 ENV LOG_LEVEL=info
 
 RUN apk add --no-cache \

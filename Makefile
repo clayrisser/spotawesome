@@ -9,7 +9,7 @@ all: clean deps build
 
 .PHONY: start
 start: env
-	@env/bin/python server.py
+	@cd ./backend && ../env/bin/python ./server.py
 
 .PHONY: data
 data:
@@ -21,7 +21,7 @@ pgadmin:
 
 env:
 	@virtualenv env
-	@env/bin/pip install -r ./requirements.txt
+	@env/bin/pip install -r ./backend/requirements.txt
 	@echo created virtualenv
 
 .PHONY: build
@@ -59,11 +59,11 @@ freeze:
 
 .PHONY: clean
 clean: clean_data
-	-@rm -rf ./env/ ./*.log.*
+	-@rm -rf ./env/ ./backend/*.log ./backend*.log.* &>/dev/null || true
 	@echo cleaned
 .PHONY: clean_data
 clean_data:
-	-@rm ./*.db
+	-@rm ./backend/*.db &> /dev/null || true
 	@echo cleaned data
 
 .PHONY: deps
