@@ -1,4 +1,4 @@
-from api.exceptions.user_exceptions import UserNotFound, UserWithEmailExists
+from api.exceptions.user_exceptions import UserNotFound, UserWithPropExists
 from api.exceptions.auth_exceptions import RoleInvalid
 from api.models import User
 from api.services.peewee_service import query_from_dict
@@ -13,7 +13,11 @@ def update(id, data):
     if 'email' in data:
         user = User.select().where(User.email == data['email']).first()
         if user:
-            raise UserWithEmailExists(data['email'])
+            raise UserWithPropExists('email', data['email'])
+    if 'username' in data:
+        user = User.select().where(User.username == data['username']).first()
+        if user:
+            raise UserWithPropExists('username', data['username'])
     if 'role' in data:
         if authed_user.role != 'super_admin':
             raise RoleInvalid('super_admin')

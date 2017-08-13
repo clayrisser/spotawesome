@@ -11,12 +11,11 @@ class UserNotFound(NotFound):
             payload
         )
 
-class UserWithEmailExists(Forbidden):
-    def __init__(self, email):
-        self.message = 'User with email \'' + email + '\' already exists'
-        payload = {
-            'email': email
-        }
+class UserWithPropExists(Forbidden):
+    def __init__(self, prop_name, prop):
+        self.message = 'User with ' + prop_name + ' \'' + prop + '\' already exists'
+        payload = {}
+        payload[prop_name] = prop
         Forbidden.__init__(
             self,
             self.message,

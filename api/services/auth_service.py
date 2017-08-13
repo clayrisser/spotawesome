@@ -1,29 +1,52 @@
 import jwt
+import re
 from jwt.exceptions import ExpiredSignatureError, DecodeError
 import datetime
 from api.models import User
-from api.exceptions.user_exceptions import UserNotFound, UserWithEmailExists
-from api.exceptions.auth_exceptions import TokenInvalid, TokenExpired, LoggedOut, PasswordInvalid, RoleInvalid
+from api.exceptions.user_exceptions import UserNotFound, UserWithPropExists
+from api.exceptions.auth_exceptions import (
+    TokenInvalid,
+    TokenExpired,
+    LoggedOut,
+    PasswordInvalid,
+    RoleInvalid
+)
 from playhouse.shortcuts import model_to_dict
 from nails import get_config
 from flask import request, make_response
+from pydash import _
 
-def register(email, password):
-    if User.select().where(User.email == email).exists():
-        raise UserWithEmailExists(email)
-    user = User(email = email)
+def register(data):
+    if User.select().where(User.email == data['email']).exists():
+        raise UserWithPropExists('email', data['email'])
+    if 'username' in data:
+        if User.select().where(User.username == data['username']).exists():
+            raise UserWithPropExists('username', data['username'])
+    data = guess_user_data(data)
+    password = data['password']
+    del data['password']
+    user = User(**data)
     user.hash_password(password)
     user.save()
     user_dict = model_to_dict(user)
     del user_dict['password']
     return get_access_token(user.id), user_dict
 
-def login(email, password):
-    user = User.select().where(User.email == email).first()
-    if not user:
-        raise UserNotFound('email', email)
-    if not user.verify_password(password):
-        raise PasswordInvalid(email)
+def login(data):
+    user = None
+    if 'username' in data:
+        user = User.select().where(User.username == data['username']).first()
+        if not user:
+            raise UserNotFound('username', data['username'])
+    if 'email' in data:
+        user = User.select().where(User.email == data['email']).first()
+        if not user:
+            raise UserNotFound('email', data['email'])
+    if not user.verify_password(data['password']):
+        if 'username' in data:
+            raise PasswordInvalid('username', data['username'])
+        if 'email' in data:
+            raise PasswordInvalid('email', data['email'])
     user_dict = model_to_dict(user)
     del user_dict['password']
     return get_access_token(user.id), user_dict
@@ -83,7 +106,11 @@ def update_authed_user(data):
     if 'email' in data:
         user = User.select().where(User.email == data['email']).first()
         if user:
-            raise UserWithEmailExists(data['email'])
+            raise UserWithPropExists('email', data['email'])
+    if 'username' in data:
+        user = User.select().where(User.username == data['username']).first()
+        if user:
+            raise UserWithPropExists('username', data['username'])
     if 'role' in data:
         if authed_user.role != 'super_admin':
             raise RoleInvalid('super_admin')
@@ -97,3 +124,67 @@ def update_authed_user(data):
     authed_user_dict = model_to_dict(authed_user)
     del authed_user_dict['password']
     return authed_user_dict
+
+def get_new_username(username, count=None):
+    matches = re.findall(r'[^@]+(?=@)', username)
+    if len(matches) > 0:
+        username = matches[0]
+        if User.select().where(User.username == username).exists():
+            return get_new_username(username, 1)
+        else:
+            return username
+    else:
+        if count == None:
+            count = 1
+        if User.select().where(User.username == username + str(count)).exists():
+            return get_new_username(username, count + 1)
+        else:
+            return username + str(count)
+
+def guess_user_data(data):
+    if 'username' not in data:
+        data['username'] = get_new_username(data['email'])
+    possible_names = {
+        'username': _.snake_case(data['username']).replace('_', ' ').title().split(),
+        'display_name': data['display_name'].split() if 'display_name' in data else list()
+    }
+    if 'first_name' not in data:
+        if len(possible_names['display_name']) > 0:
+            data['first_name'] = possible_names['display_name'][0]
+        else:
+            data['first_name'] = possible_names['username'][0]
+    if 'last_name' not in data:
+        if len(possible_names['display_name']) > 1:
+            data['last_name'] = possible_names['display_name'][1]
+        elif len(possible_names['username']) > 1:
+            data['last_name'] = possible_names['username'][1]
+    if 'display_name' not in data:
+        data['display_name'] = data['first_name']
+        if 'last_name' in data:
+            data['display_name'] += ' ' + data['last_name']
+    return data
+
+def oauth_register_or_login(data, provider):
+    authed_user = User.select().where(User.github == data['github']).first()
+    if not authed_user:
+        if 'email' in data:
+            authed_user = User.select().where(User.email == data['email']).first()
+            if authed_user.exists():
+                query = {}
+                query[provider] = data[provider]
+                User.update(**query).where(User.email == data['email']).execute()
+                authed_user = User.select().where(User.email == data['email']).first()
+                authed_user_dict = model_to_dict(authed_user)
+                del authed_user_dict['password']
+                return get_access_token(authed_user.id), authed_user_dict
+        data = guess_user_data(data)
+        if 'username' in data:
+            if User.select().where(User.username == data['username']).exists():
+                data['username'] = get_new_username(data['username'])
+        if 'password' in data:
+            del data['password']
+        authed_user = User(**data)
+        authed_user.save()
+    authed_user_dict = model_to_dict(authed_user)
+    del authed_user_dict['password']
+    return get_access_token(authed_user.id), authed_user_dict

@@ -14,12 +14,14 @@ class Nails(Flask):
     def __init__(self, import_name):
         super(self.__class__, self).__init__(import_name)
         app = self
+        app.secret_key = get_config('secret')
 
     def run(self, host=None, port=None, debug=None, **options):
         super(self.__class__, self).run(
             host=host if host else config['host'],
             port=port if port else config['port'],
-            debug=debug if debug else config['debug']
+            debug=debug if debug else config['debug'],
+            threaded=True
         )
 
     def register_app(self, app):

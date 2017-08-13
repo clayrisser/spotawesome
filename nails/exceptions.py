@@ -32,6 +32,10 @@ class NotFound(BadRequest):
     message = 'Not found'
     status = 404
 
+class MethodNotAllowed(BadRequest):
+    message = 'Method not allowed'
+    status = 405
+
 class BadImplementation(BadRequest):
     message = 'Bad implementation'
     status = 500

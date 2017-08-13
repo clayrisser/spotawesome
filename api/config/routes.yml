@@ -3,3 +3,5 @@
 '/auth/register/': auth_controller.Register
 '/auth/login/': auth_controller.Login
 '/auth/user/': auth_controller.User
+'/auth/provider/<provider>/': auth_controller.Provider
+'/auth/callback/<provider>/': auth_controller.Callback

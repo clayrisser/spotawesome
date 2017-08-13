@@ -3,11 +3,16 @@ from nails import Serializer
 
 class UpdateUserSerializer(Serializer):
     id = fields.Field(required=True)
+    first_name = fields.Str()
+    last_name = fields.Str()
+    display_name = fields.Str()
+    username = fields.Str()
     email = fields.Email()
     password = fields.Str()
 
 class GetUserSerializer(Serializer):
     id = fields.Field()
+    username = fields.Field()
     email = fields.Str()
 
     @post_load
