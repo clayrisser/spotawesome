@@ -12,6 +12,7 @@ Jinja2==2.9.6
 logging==0.4.9.6
 MarkupSafe==1.0
 marshmallow==2.13.5
+nails==0.1.0
 namedtupled==0.3.3
 oauthlib==2.0.2
 passlib==1.7.1
