@@ -20,6 +20,10 @@ class BadRequest(Exception):
         if payload:
             response['payload'] = payload
 
+class Unauthorized(BadRequest):
+    message = 'Unauthorized'
+    status = 401
+
 class Forbidden(BadRequest):
     message = 'Forbidden'
     status = 403

@@ -1,2 +1,4 @@
 '/user/': user_controller.UserInstance
 '/users/': user_controller.UserList
+'/auth/register/': auth_controller.Register
+'/auth/login/': auth_controller.Login
