@@ -2,8 +2,6 @@ from api.services import auth_service
 from api.policies import is_authed
 from api.serializers.auth_serializer import (
     GitHubCallbackSerializer,
-    LoginSerializer,
-    RegisterSerializer,
     UpdateAuthedUserSerializer
 )
 from api.exceptions.auth_exceptions import ProviderInvalid
@@ -11,18 +9,7 @@ from flask import jsonify, request, redirect, session
 from nails import Controller, get_config
 from api.services.oauth_service import github, github_to_user
 
-class Register(Controller):
-    def post(self):
-        data, err = RegisterSerializer().load(request.json)
-        access_token, user = auth_service.register(data)
-        return auth_service.resp_with_access_token(jsonify(user), access_token)
-
 class Login(Controller):
-    def post(self):
-        data, err = LoginSerializer().load(request.json)
-        access_token, user = auth_service.login(data)
-        return auth_service.resp_with_access_token(jsonify(user), access_token)
-
     @is_authed
     def get(self):
         access_token, user = auth_service.renew_access_token()

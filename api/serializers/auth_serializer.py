@@ -9,18 +9,6 @@ class RegisterSerializer(Serializer):
     email = fields.Email(required=True)
     password = fields.Str(required=True)
 
-class LoginSerializer(Serializer):
-    username = fields.Str()
-    email = fields.Email()
-    password = fields.Str(required=True)
-
-    @post_load
-    def post_load(self, data):
-        if (not 'username' in data) and (not 'email' in data):
-            if 'password' in data:
-                del data['password']
-            raise ValidationError('Must supply a \'username\' or \'email\'', data)
-
 class UpdateAuthedUserSerializer(Serializer):
     email = fields.Email()
     password = fields.Str()

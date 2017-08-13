@@ -16,41 +16,6 @@ from nails import get_config
 from flask import request, make_response
 from pydash import _
 
-def register(data):
-    if User.select().where(User.email == data['email']).exists():
-        raise UserWithPropExists('email', data['email'])
-    if 'username' in data:
-        if User.select().where(User.username == data['username']).exists():
-            raise UserWithPropExists('username', data['username'])
-    data = guess_user_data(data)
-    password = data['password']
-    del data['password']
-    user = User(**data)
-    user.hash_password(password)
-    user.save()
-    user_dict = model_to_dict(user)
-    del user_dict['password']
-    return get_access_token(user.id), user_dict
-
-def login(data):
-    user = None
-    if 'username' in data:
-        user = User.select().where(User.username == data['username']).first()
-        if not user:
-            raise UserNotFound('username', data['username'])
-    if 'email' in data:
-        user = User.select().where(User.email == data['email']).first()
-        if not user:
-            raise UserNotFound('email', data['email'])
-    if not user.verify_password(data['password']):
-        if 'username' in data:
-            raise PasswordInvalid('username', data['username'])
-        if 'email' in data:
-            raise PasswordInvalid('email', data['email'])
-    user_dict = model_to_dict(user)
-    del user_dict['password']
-    return get_access_token(user.id), user_dict
-
 def renew_access_token():
     user_dict = get_authed_user()
     return get_access_token(user_dict['id']), user_dict
