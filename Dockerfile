@@ -21,8 +21,6 @@ ENV JWT_SECURE=false
 ENV LOG_FILE=/var/log/spotawesome.log
 ENV LOG_LEVEL=info
 
-WORKDIR /app/
-
 RUN apk add --no-cache \
         build-base \
         postgresql-dev \
@@ -30,7 +28,10 @@ RUN apk add --no-cache \
         python \
         python-dev \
         tini && \
-    pip install --upgrade pip
+    pip install --upgrade pip && \
+    mkdir /data/
+
+WORKDIR /app/
 
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
