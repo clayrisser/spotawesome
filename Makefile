@@ -59,11 +59,11 @@ freeze:
 
 .PHONY: clean
 clean: clean_data
-	@rm -rf ./env/ ./*.log.*
+	-@rm -rf ./env/ ./*.log.*
 	@echo cleaned
 .PHONY: clean_data
 clean_data:
-	@rm ./*.db
+	-@rm ./*.db
 	@echo cleaned data
 
 .PHONY: deps

@@ -3,7 +3,7 @@ from jwt.exceptions import ExpiredSignatureError, DecodeError
 import datetime
 from api.models import User
 from api.exceptions.user_exceptions import UserNotFound, UserWithEmailExists
-from api.exceptions.auth_exceptions import TokenInvalid, TokenExpired, LoggedOut, PasswordInvalid
+from api.exceptions.auth_exceptions import TokenInvalid, TokenExpired, LoggedOut, PasswordInvalid, RoleInvalid
 from playhouse.shortcuts import model_to_dict
 from nails import get_config
 from flask import request, make_response
@@ -37,16 +37,16 @@ def get_authed_user_model():
     if not access_token:
         raise LoggedOut()
     payload = get_payload(access_token)
-    user = User.select().where(User.id == payload['user_id']).first()
-    if not user:
+    authed_user = User.select().where(User.id == payload['user_id']).first()
+    if not authed_user:
         raise LoggedOut()
-    return user
+    return authed_user
 
 def get_authed_user():
-    user = get_authed_user_model()
-    user_dict = model_to_dict(user)
-    del user_dict['password']
-    return user_dict
+    authed_user = get_authed_user_model()
+    authed_user_dict = model_to_dict(authed_user)
+    del authed_user_dict['password']
+    return authed_user_dict
 
 def get_access_token(user_id):
     return jwt.encode({
@@ -79,17 +79,21 @@ def resp_with_access_token(data, access_token):
     return response
 
 def update_authed_user(data):
-    user = get_authed_user_model()
+    authed_user = get_authed_user_model()
     if 'email' in data:
-        user_with_same_email = User.select().where(User.email == data['email']).first()
-        if user_with_same_email:
+        user = User.select().where(User.email == data['email']).first()
+        if user:
             raise UserWithEmailExists(data['email'])
+    if 'role' in data:
+        if authed_user.role != 'super_admin':
+            raise RoleInvalid('super_admin')
     if 'password' in data:
-        user.hash_password(data['password'])
+        authed_user.hash_password(data['password'])
         del data['password']
-        user.save()
-    User.update(**data).where(User.id == user.id).execute()
-    user = User.select().where(User.id == user.id).first()
-    user_dict = model_to_dict(user)
-    del user_dict['password']
-    return user_dict
+        authed_user.save()
+    if len(data.keys()) > 0:
+        User.update(**data).where(User.id == authed_user.id).execute()
+    authed_user = User.select().where(User.id == authed_user.id).first()
+    authed_user_dict = model_to_dict(authed_user)
+    del authed_user_dict['password']
+    return authed_user_dict

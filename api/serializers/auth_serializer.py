@@ -12,3 +12,4 @@ class LoginSerializer(Serializer):
 class UpdateAuthedUserSerializer(Serializer):
     email = fields.Email()
     password = fields.Str()
+    role = fields.Str()
