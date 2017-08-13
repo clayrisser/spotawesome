@@ -3,13 +3,14 @@ from api.serializers.user_serializer import (
     UpdateUserSerializer,
     GetUserSerializer
 )
-from api.policies import is_authed
+from api.policies import is_authed, is_admin
 from flask import jsonify, request
 from nails import Controller
 
 class UserInstance(Controller):
     method_decorators = [is_authed]
 
+    @is_admin
     def put(self):
         data, err = UpdateUserSerializer().load(request.json)
         user = user_service.update(data['id'], data)
@@ -22,4 +23,5 @@ class UserInstance(Controller):
 
 class UserList(Controller):
     def get(self):
+        self.method_decorators = [is_authed, is_admin]
         return 'a list of users'

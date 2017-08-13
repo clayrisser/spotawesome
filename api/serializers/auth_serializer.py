@@ -8,3 +8,7 @@ class RegisterSerializer(Serializer):
 class LoginSerializer(Serializer):
     email = fields.Email(required=True)
     password = fields.Str(required=True)
+
+class UpdateAuthedUserSerializer(Serializer):
+    email = fields.Email()
+    password = fields.Str()

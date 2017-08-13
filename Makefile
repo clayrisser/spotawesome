@@ -58,9 +58,13 @@ freeze:
 	@echo froze requirements
 
 .PHONY: clean
-clean:
-	@rm -rf ./*.db ./env/
+clean: clean_data
+	@rm -rf ./env/ ./*.log.*
 	@echo cleaned
+.PHONY: clean_data
+clean_data:
+	@rm ./*.db
+	@echo cleaned data
 
 .PHONY: deps
 deps: docker

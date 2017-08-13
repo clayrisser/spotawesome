@@ -8,6 +8,9 @@ BaseModel = get_base_model(__file__)
 class User(BaseModel):
     email = CharField()
     password = CharField()
+    role = CharField(
+        default='user'
+    )
 
     def hash_password(self, password):
         self.password = pbkdf2_sha256.hash(password)
