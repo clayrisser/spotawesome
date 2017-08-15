@@ -3,7 +3,9 @@ from flask import jsonify, request
 from nails import Controller
 
 class ClusterInstance(Controller):
-    pass
+
+    def post():
+        pass
 
 class ClusterList(Controller):
     pass

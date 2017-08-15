@@ -4,4 +4,5 @@ from peewee import *
 BaseModel = get_base_model(__file__)
 
 class Cluster(BaseModel):
-    pass
+    name = CharField()
+    provider = CharField()
