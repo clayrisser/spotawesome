@@ -54,7 +54,7 @@ essh:
 
 .PHONY: freeze
 freeze:
-	@env/bin/pip freeze > ./requirements.txt
+	@env/bin/pip freeze > ./backend/requirements.txt
 	@echo froze requirements
 
 .PHONY: clean
