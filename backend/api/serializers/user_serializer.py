@@ -1,4 +1,4 @@
-from marshmallow import fields, pre_load, post_load, ValidationError
+from marshmallow import fields, post_load, ValidationError
 from nails import Serializer
 
 class UpdateUserSerializer(Serializer):
@@ -12,10 +12,15 @@ class UpdateUserSerializer(Serializer):
 
 class GetUserSerializer(Serializer):
     id = fields.Field()
-    username = fields.Field()
-    email = fields.Str()
+    username = fields.Str()
+    email = fields.Email()
 
     @post_load
     def post_load(self, data):
         if (not 'id' in data) and (not 'email' in data):
             raise ValidationError('Missing data for required \'email\' or \'id\' field', data)
+
+class UserSerializer(Serializer):
+    id = fields.Field()
+    username = fields.Str()
+    email = fields.Str()
