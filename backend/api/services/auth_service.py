@@ -11,7 +11,6 @@ from api.exceptions.auth_exceptions import (
     PasswordInvalid,
     RoleInvalid
 )
-from playhouse.shortcuts import model_to_dict
 from nails import get_config
 from flask import request, make_response
 from pydash import _
@@ -20,7 +19,7 @@ def renew_access_token():
     user_dict = get_authed_user()
     return get_access_token(user_dict['id']), user_dict
 
-def get_authed_user_model():
+def get_authed_user():
     access_token = request.cookies.get('access_token')
     if not access_token:
         raise LoggedOut()
@@ -29,12 +28,6 @@ def get_authed_user_model():
     if not authed_user:
         raise LoggedOut()
     return authed_user
-
-def get_authed_user():
-    authed_user = get_authed_user_model()
-    authed_user_dict = model_to_dict(authed_user)
-    del authed_user_dict['password']
-    return authed_user_dict
 
 def get_access_token(user_id):
     return jwt.encode({
@@ -67,7 +60,7 @@ def resp_with_access_token(data, access_token):
     return response
 
 def update_authed_user(data):
-    authed_user = get_authed_user_model()
+    authed_user = get_authed_user()
     if 'email' in data:
         user = User.select().where(User.email == data['email']).first()
         if user:
@@ -85,10 +78,7 @@ def update_authed_user(data):
         authed_user.save()
     if len(data.keys()) > 0:
         User.update(**data).where(User.id == authed_user.id).execute()
-    authed_user = User.select().where(User.id == authed_user.id).first()
-    authed_user_dict = model_to_dict(authed_user)
-    del authed_user_dict['password']
-    return authed_user_dict
+    return User.select().where(User.id == authed_user.id).first()
 
 def get_new_username(username, count=None):
     matches = re.findall(r'[^@]+(?=@)', username)
@@ -139,9 +129,7 @@ def oauth_register_or_login(data, provider):
                 query[provider] = data[provider]
                 User.update(**query).where(User.email == data['email']).execute()
                 authed_user = User.select().where(User.email == data['email']).first()
-                authed_user_dict = model_to_dict(authed_user)
-                del authed_user_dict['password']
-                return get_access_token(authed_user.id), authed_user_dict
+                return get_access_token(authed_user.id), authed_user
         data = guess_user_data(data)
         if 'username' in data:
             if User.select().where(User.username == data['username']).exists():
@@ -150,6 +138,4 @@ def oauth_register_or_login(data, provider):
             del data['password']
         authed_user = User(**data)
         authed_user.save()
-    authed_user_dict = model_to_dict(authed_user)
-    del authed_user_dict['password']
-    return get_access_token(authed_user.id), authed_user_dict
+    return get_access_token(authed_user.id), authed_user
