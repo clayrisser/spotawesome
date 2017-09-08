@@ -34,3 +34,6 @@ def find_one(data):
     if not user:
         raise UserNotFound(data.keys()[0], data[data.keys()[0]])
     return user
+
+def find():
+    return User.select()

@@ -16,8 +16,20 @@ from flask import request, make_response
 from pydash import _
 
 def renew_access_token():
-    user_dict = get_authed_user()
-    return get_access_token(user_dict['id']), user_dict
+    user = get_authed_user()
+    return get_access_token(user.id), user
+
+def get_access_token(user_id):
+    return jwt.encode({
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=get_config('api', 'jwt.exp')),
+        'user_id': user_id
+    }, get_config('api', 'jwt.secret'), algorithm='HS256')
+
+def has_admin_role():
+    authed_user = get_authed_user()
+    if not authed_user.role or authed_user.role != 'admin':
+        return False
+    return True
 
 def get_authed_user():
     access_token = request.cookies.get('access_token')
@@ -28,12 +40,6 @@ def get_authed_user():
     if not authed_user:
         raise LoggedOut()
     return authed_user
-
-def get_access_token(user_id):
-    return jwt.encode({
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=get_config('api', 'jwt.exp')),
-        'user_id': user_id
-    }, get_config('api', 'jwt.secret'), algorithm='HS256')
 
 def get_payload(access_token):
     try:

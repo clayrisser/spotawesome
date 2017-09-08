@@ -1,4 +1,4 @@
-from api.services import user_service
+from api.services import user_service, auth_service
 from api.serializers.user_serializer import (
     UpdateUserSerializer,
     GetUserSerializer,
@@ -19,11 +19,19 @@ class UserInstance(Controller):
         return jsonify(UserSerializer.load(model_to_dict(user))[0])
 
     def get(self):
-        data, err = GetUserSerializer().load(request.args.to_dict())
+        load_only = list()
+        if not auth_service.has_admin_role():
+            load_only.append('email')
+        data, err = GetUserSerializer(load_only=load_only).load(request.args.to_dict())
         user = user_service.find_one(data)
         return jsonify(UserSerializer().load(model_to_dict(user))[0])
 
 class UserList(Controller):
+    method_decorators = [is_authed]
+
     def get(self):
-        self.method_decorators = [is_authed, is_admin]
-        return 'a list of users'
+        load_only = list()
+        if not auth_service.has_admin_role():
+            load_only.append('email')
+        users = user_service.find();
+        return jsonify(UserSerializer(many=True, load_only=load_only).dump(users)[0])
