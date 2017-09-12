@@ -12,7 +12,7 @@ from api.exceptions.auth_exceptions import (
     RoleInvalid
 )
 from nails import get_config
-from flask import request, make_response
+from flask import request
 from pydash import _
 
 def renew_access_token():
@@ -52,8 +52,7 @@ def get_payload(access_token):
     except DecodeError:
         raise TokenInvalid()
 
-def resp_with_access_token(data, access_token):
-    response = make_response(data)
+def resp_with_access_token(response, access_token):
     domain = get_config('api', 'jwt.domain')
     response.set_cookie(
         key='access_token',

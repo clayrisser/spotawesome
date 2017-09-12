@@ -7,9 +7,16 @@ DOCKERFILE := $(CWD)/Dockerfile
 .PHONY: all
 all: clean deps build
 
-.PHONY: start
-start: env
-	@cd ./backend && ../env/bin/python ./server.py
+.PHONY: backend
+backend: env
+	@cd $(CWD)/backend && $(CWD)/env/bin/python ./server.py
+
+.PHONY: frontend
+frontend: frontend/node_modules
+	@cd $(CWD)/frontend/ && yarn start
+
+frontend/node_modules:
+	@cd $(CWD)/frontend/ && yarn install
 
 .PHONY: data
 data:

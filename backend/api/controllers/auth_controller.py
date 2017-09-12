@@ -8,16 +8,16 @@ from api.serializers.user_serializer import (
     UserSerializer
 )
 from api.exceptions.auth_exceptions import ProviderInvalid
-from flask import jsonify, request, redirect, session
+from flask import jsonify, request, redirect, session, render_template, make_response
 from nails import Controller, get_config
 from api.services.oauth_service import github, github_to_user
 from playhouse.shortcuts import model_to_dict
 
 class Login(Controller):
-    @is_authed
     def get(self):
         access_token, user = auth_service.renew_access_token()
-        return auth_service.resp_with_access_token(jsonify(UserSerializer().load(model_to_dict(user))[0]), access_token)
+        response = make_response(jsonify(UserSerializer().load(model_to_dict(user))[0]))
+        return auth_service.resp_with_access_token(response, access_token)
 
 class User(Controller):
     method_decorators = [is_authed]
@@ -45,5 +45,9 @@ class Callback(Controller):
             github_user = github.get('user')
             user_data = github_to_user(github_user.data)
             access_token, user = auth_service.oauth_register_or_login(user_data, 'github')
-            return auth_service.resp_with_access_token(jsonify(UserSerializer().load(model_to_dict(user))[0]), access_token)
+            response = make_response(render_template(
+                'callback.html',
+                context=UserSerializer().load(model_to_dict(user))[0]
+            ))
+            return auth_service.resp_with_access_token(response, access_token)
         raise ProviderInvalid(provider)

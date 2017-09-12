@@ -16,6 +16,7 @@ class Home extends Component {
     return (<div className={s.root}>
       <Layout>
         I am <Link to="boo">home</Link>
+        <Link to="login">Login</Link>
       </Layout>
     </div>);
   }
