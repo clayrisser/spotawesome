@@ -34,5 +34,5 @@ requests-oauthlib==0.8.0
 s3transfer==0.1.10
 schedule==0.4.3
 six==1.10.0
-urllib3==1.22
-Werkzeug==0.15.3
+urllib3==1.24.2
+Werkzeug==0.12.2
